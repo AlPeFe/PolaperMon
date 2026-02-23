@@ -1,44 +1,92 @@
 # PolaperMon
 
-Monitor ligero construido con .NET para tareas de supervisión y utilidades.
+A lightweight health monitoring service built with .NET 10 and ASP.NET Core HealthChecks.
 
-**Estado:** Código base inicial en el repositorio.
+## Features
 
-## Qué hace
-PolaperMon es una aplicación escrita en C#/.NET diseñada para tareas de monitoreo y automatización relacionadas con infraestructura o procesos locales. Contiene la estructura base del proyecto y la configuración necesaria para compilar y ejecutar la aplicación en entornos compatibles con .NET.
+- **SQL Server Monitoring** - Database connectivity health checks
+- **Disk Storage Monitoring** - Track available disk space with configurable thresholds
+- **HTTP Endpoint Monitoring** - Monitor external APIs and services
+- **Health Checks UI** - Built-in dashboard for visualizing health status
+- **Windows Service** - Run as a native Windows service
 
-## Tecnologías
+## Endpoints
 
-- .NET 10 (net10.0)
-- C#
-- MSBuild / dotnet CLI
+| Endpoint | Description |
+|----------|-------------|
+| `/health` | Full health check with JSON response |
+| `/health/ready` | Readiness probe |
+| `/healthchecks-ui` | Web dashboard |
 
-## Ejecutar localmente
+## Configuration
 
-1. Restaurar paquetes y compilar:
+Configure monitoring targets in `appsettings.json`:
+
+```json
+{
+  "SqlServer": {
+    "ConnectionString": "Server=localhost,1433;Database=master;User Id=sa;Password=YourPassword;TrustServerCertificate=True;"
+  },
+  "Disk": {
+    "Drive": "/",
+    "ThresholdMB": 1024
+  },
+  "EndpointSettings": {
+    "Endpoints": [
+      { "Name": "API Principal", "Url": "https://api.example.com/health" },
+      { "Name": "Payment Service", "Url": "https://payments.example.com/status" }
+    ]
+  }
+}
+```
+
+| Setting | Description |
+|---------|-------------|
+| `SqlServer:ConnectionString` | SQL Server connection string for DB health checks |
+| `Disk:Drive` | Drive to monitor (e.g., `/` on Linux, `C:` on Windows) |
+| `Disk:ThresholdMB` | Minimum free space in MB before reporting unhealthy |
+| `EndpointSettings:Endpoints` | Array of external endpoints to monitor |
+
+## Quick Start
+
+### Prerequisites
+
+- [.NET 10 SDK](https://dotnet.microsoft.com/download)
+
+### Run
 
 ```bash
 dotnet restore
+dotnet run --project PolaperMon
+```
+
+### Build
+
+```bash
 dotnet build
 ```
 
-2. Ejecutar la aplicación:
+### Publish
 
 ```bash
-dotnet run --project PolaperMon/PolaperMon.csproj
+dotnet publish -c Release -o ./publish
 ```
 
-3. Publicar (opcional):
+## Running as a Windows Service
 
-```bash
-dotnet publish -c Release -o publish
+PolaperMon is configured to run as a Windows Service. After publishing:
+
+```powershell
+sc create PolaperMon binPath="C:\path\to\publish\PolaperMon.exe"
+sc start PolaperMon
 ```
 
-## Contribuir
+## Tech Stack
 
-- Abre un issue o crea un PR con cambios propuestos.
-- Sigue las buenas prácticas de commits y pruebas.
+- .NET 10 / ASP.NET Core
+- [AspNetCore.HealthChecks](https://github.com/Xabaril/AspNetCore.Diagnostics.HealthChecks)
+- Microsoft.Extensions.Hosting.WindowsServices
 
----
+## License
 
-Si quieres, puedo crear también una plantilla de `ISSUE_TEMPLATE` y `CONTRIBUTING.md`, o conectar el repo a GitHub y pushear los cambios por ti.
+MIT
